@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { addToRecent } from "@/components/NavRecent"
 import { PWAUpdatePrompt } from "@/components/PWAUpdatePrompt"
 import { LandingPage } from "@/components/LandingPage"
+import { SharePreviewPage } from "@/components/SharePreviewPage"
 import { DeliveryMap } from "@/components/DeliveryMap"
 import { useEditMode } from "@/contexts/EditModeContext"
 import { useTheme } from "@/hooks/use-theme"
@@ -1919,9 +1920,15 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { error: Error | 
   }
 }
 
+function getSlugFromPath(): string | null {
+  const match = window.location.pathname.match(/^\/s\/([a-z0-9]+)$/i)
+  return match ? match[1] : null
+}
+
 export function App() {
   const [landed, setLanded] = useState(false)
   const [showContent, setShowContent] = useState(false)
+  const [shareSlug] = useState(() => getSlugFromPath())
 
   useEffect(() => {
     if (landed) {
@@ -1931,6 +1938,36 @@ export function App() {
     setShowContent(false)
     return undefined
   }, [landed])
+
+  // /s/:slug — show preview page, on enter resolve long URL and load it
+  if (shareSlug) {
+    return (
+      <DeviceProvider>
+        <ErrorBoundary>
+          <SharePreviewPage
+            slug={shareSlug}
+            onEnter={(longUrl) => {
+              // Replace path with root and set the hash so the normal app loads the shared view
+              const hashIndex = longUrl.indexOf("#")
+              const hash = hashIndex !== -1 ? longUrl.slice(hashIndex) : ""
+              window.history.replaceState(null, "", "/" + hash)
+              window.location.reload()
+            }}
+          />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              classNames: {
+                toast: "!border !border-border !bg-background !text-foreground !shadow-xl !rounded-xl",
+                title: "!text-foreground !font-semibold !text-sm",
+                description: "!text-muted-foreground !text-xs",
+              },
+            }}
+          />
+        </ErrorBoundary>
+      </DeviceProvider>
+    )
+  }
 
   return (
     <DeviceProvider>

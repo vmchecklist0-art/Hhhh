@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react"
-import { Link, Loader as Loader2, CircleAlert as AlertCircle, TriangleAlert as AlertTriangle, Search, X, ChevronUp, ChevronDown as ChevronDownIcon, ChevronsUpDown, ListFilter as Filter, Check, Columns2, Info, Copy, Trash2, ExternalLink, Bookmark, Pencil, CheckCheck, Navigation2, LayoutList, Eye, MapPin, Table2 } from "lucide-react"
+import { Link, Loader as Loader2, CircleAlert as AlertCircle, TriangleAlert as AlertTriangle, Search, X, ChevronUp, ChevronDown as ChevronDownIcon, ChevronsUpDown, ListFilter as Filter, Check, Columns2, Info, Copy, Trash2, ExternalLink, Bookmark, Pencil, CheckCheck, Navigation2, LayoutList } from "lucide-react"
 import { toast } from "sonner"
 import { cn, parseSmartQuery, isDeliveryActive } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -251,13 +251,13 @@ const shortenUrl = async (longUrl: string): Promise<string> => {
   try {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
     const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
-    const res = await fetch(`${supabaseUrl}/functions/v1/shorten-url`, {
+    const res = await fetch(`${supabaseUrl}/functions/v1/short-link`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${supabaseKey}`,
       },
-      body: JSON.stringify({ url: longUrl }),
+      body: JSON.stringify({ longUrl }),
       signal: AbortSignal.timeout(10000),
     })
     if (res.ok) {
@@ -287,8 +287,6 @@ export function DeliveryTableDialog() {
   const initHash = useRef(readHashState())
   // True when page was opened via a generated share link (read-only view)
   const isSharedView = initHash.current?.ro === 1
-  // Preview gate: shared links show a preview card first
-  const [previewDismissed, setPreviewDismissed] = useState(false)
 
   // Search & Filter — initialised from shared link if present
   const [search, setSearch]                     = useState(initHash.current?.s ?? "")
@@ -702,90 +700,6 @@ export function DeliveryTableDialog() {
       .then(() => toast.success("Short link copied!"))
       .catch(() => toast.error("Failed to copy link"))
     setIsShortening(false)
-  }
-
-  // ── Shared-link preview gate ───────────────────────────────────────────
-  if (isSharedView && !previewDismissed) {
-    const title = initHash.current?.ctitle ?? "Location View"
-    const isCustom = !!initHash.current?.pts?.length
-    const ptCount = initHash.current?.pts?.length ?? null
-    const routeFilters = initHash.current?.r ?? []
-    const deliveryFilters = initHash.current?.d ?? []
-    const searchVal = initHash.current?.s ?? ""
-
-    return (
-      <div className="flex flex-col flex-1 min-h-0 items-center justify-center p-6 bg-background">
-        <div className="w-full max-w-sm">
-          {/* Card */}
-          <div className="rounded-2xl border border-border/60 bg-card shadow-lg overflow-hidden">
-            {/* Header band */}
-            <div className="bg-primary/8 border-b border-primary/15 px-5 py-4 flex items-center gap-3">
-              <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/15 shrink-0">
-                {isCustom ? <Table2 className="size-4 text-primary" /> : <MapPin className="size-4 text-primary" />}
-              </div>
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-primary/60 mb-0.5">
-                  {isCustom ? "Custom Table" : "Shared View"}
-                </p>
-                <p className="text-[15px] font-bold text-foreground truncate">{title}</p>
-              </div>
-            </div>
-
-            {/* Meta */}
-            <div className="px-5 py-4 space-y-2.5">
-              {ptCount !== null && (
-                <div className="flex items-center gap-2.5 text-[12px]">
-                  <MapPin className="size-3.5 text-muted-foreground shrink-0" />
-                  <span className="text-foreground font-medium">{ptCount} location{ptCount !== 1 ? "s" : ""}</span>
-                </div>
-              )}
-              {routeFilters.length > 0 && (
-                <div className="flex items-start gap-2.5 text-[12px]">
-                  <Navigation2 className="size-3.5 text-muted-foreground shrink-0 mt-0.5" />
-                  <span className="text-foreground font-medium">{routeFilters.length} route filter{routeFilters.length !== 1 ? "s" : ""} active</span>
-                </div>
-              )}
-              {deliveryFilters.length > 0 && (
-                <div className="flex items-center gap-2.5 text-[12px]">
-                  <Filter className="size-3.5 text-muted-foreground shrink-0" />
-                  <span className="text-foreground font-medium">{deliveryFilters.length} delivery filter{deliveryFilters.length !== 1 ? "s" : ""} active</span>
-                </div>
-              )}
-              {searchVal && (
-                <div className="flex items-center gap-2.5 text-[12px]">
-                  <Search className="size-3.5 text-muted-foreground shrink-0" />
-                  <span className="text-foreground font-medium">Search: <span className="font-semibold text-primary">"{searchVal}"</span></span>
-                </div>
-              )}
-              {!ptCount && !routeFilters.length && !deliveryFilters.length && !searchVal && (
-                <p className="text-[12px] text-muted-foreground">All locations, no filters applied.</p>
-              )}
-            </div>
-
-            {/* Notice */}
-            <div className="mx-4 mb-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/50 px-3 py-2 flex items-center gap-2">
-              <Info className="size-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
-              <p className="text-[11px] text-amber-700 dark:text-amber-400 font-medium">Read-only shared view</p>
-            </div>
-
-            {/* Action */}
-            <div className="px-4 pb-4">
-              <button
-                onClick={() => setPreviewDismissed(true)}
-                className="w-full flex items-center justify-center gap-2 h-10 rounded-xl bg-primary text-primary-foreground text-[13px] font-semibold hover:bg-primary/90 active:scale-[0.98] transition-all duration-150 shadow-sm"
-              >
-                <Eye className="size-4" />
-                View Table
-              </button>
-            </div>
-          </div>
-
-          <p className="text-center text-[11px] text-muted-foreground/50 mt-4">
-            Shared via FamilyMart Location
-          </p>
-        </div>
-      </div>
-    )
   }
 
   return (
