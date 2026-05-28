@@ -2,6 +2,11 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "functions": {
+    "api/index.ts": {
+      "runtime": "@vercel/node@5.6.4"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
