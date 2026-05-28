@@ -124,7 +124,7 @@ export function NavMain({
                           {item.items?.map((subItem) => (
                             <SidebarMenuSubItem key={subItem.title}>
                               <SidebarMenuSubButton
-                                className="font-medium transition-colors duration-150"
+                                className="font-medium transition-colors duration-150 text-[12px]"
                                 isActive={currentPage === subItem.page}
                                 onClick={() => {
                                   if (subItem.page) onSubItemClick?.(subItem.page)
