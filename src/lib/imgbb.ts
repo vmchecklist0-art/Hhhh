@@ -17,35 +17,31 @@ function fileToBase64(file: File): Promise<string> {
   })
 }
 
-/**
- * Upload image to backend (which securely uploads to ImgBB)
- * This keeps the API key server-side only
- */
 export async function uploadImageToImgBB(file: File): Promise<string> {
   const imgbbKey = localStorage.getItem(LS_IMGBB_KEY)
   if (!imgbbKey) throw new Error("ImgBB API key not configured")
 
-  // Convert file to base64
   const base64Data = await fileToBase64(file)
 
-  // Send as JSON with base64 data
-  const response = await fetch(`/api/upload?key=${encodeURIComponent(imgbbKey)}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ image: base64Data }),
-  })
+  const formData = new URLSearchParams()
+  formData.append("image", base64Data)
+
+  const response = await fetch(
+    `https://api.imgbb.com/1/upload?key=${encodeURIComponent(imgbbKey)}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: formData.toString(),
+    }
+  )
 
   const payload = await response.json().catch(() => null)
   if (!response.ok || !payload?.success) {
-    throw new Error(payload?.error ?? payload?.error?.message ?? "Upload failed")
+    throw new Error(payload?.error?.message ?? payload?.error ?? "Upload failed")
   }
 
   const imageUrl = payload.data?.url
-  if (!imageUrl) {
-    throw new Error("Upload succeeded without an image URL")
-  }
+  if (!imageUrl) throw new Error("Upload succeeded without an image URL")
 
   return imageUrl as string
 }
