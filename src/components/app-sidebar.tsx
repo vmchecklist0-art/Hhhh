@@ -3,21 +3,7 @@
 import * as React from "react"
 import fmLogo from "../../icon/fmlogo.png"
 import sidebarBgLogo from "../../icon/IMG_0011.jpeg"
-import {
-  CalendarDays,
-  ChevronsUpDown,
-  Cog,
-  House,
-  Images,
-  Loader2,
-  Moon,
-  Package,
-  Pencil,
-  Search,
-  Sun,
-  X,
-  Zap,
-} from "lucide-react"
+import { CalendarDays, ChevronsUpDown, Cog, House, Images, Loader as Loader2, Moon, Package, Pencil, Search, Sun, X, Zap } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -391,7 +377,7 @@ export function AppSidebar({
                 style={{ background: actionOpen ? 'hsl(var(--sidebar-accent)/0.5)' : undefined }}
               >
                 <Zap className="size-[15px] shrink-0 text-amber-400" />
-                <span className="flex-1 text-[13px] font-medium text-sidebar-foreground">Action</span>
+                <span className="flex-1 text-[12.5px] font-medium text-sidebar-foreground">Action</span>
                 <ChevronsUpDown
                   className="size-3.5 shrink-0 text-muted-foreground transition-transform duration-200"
                   style={{ transform: actionOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
