@@ -11,7 +11,29 @@ const sql = neon(process.env.DATABASE_URL);
 function setCors(res: VercelResponse) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-ImgBB-Key');
+}
+
+// Helper to parse JSON body from request
+async function parseJsonBody(req: VercelRequest): Promise<any> {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', (chunk: Buffer) => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        if (body) {
+          resolve(JSON.parse(body));
+        } else {
+          resolve({});
+        }
+      } catch (e) {
+        reject(new Error('Invalid JSON'));
+      }
+    });
+    req.on('error', reject);
+  });
 }
 
 // ── /api/calendar ─────────────────────────────────────────────────────────────
@@ -171,17 +193,34 @@ async function handleUpload(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ success: false, error: 'ImgBB API key not configured' });
   }
 
-  const headers: Record<string, string> = {};
-  if (req.headers['content-type']) {
-    headers['Content-Type'] = req.headers['content-type'];
+  // Parse JSON body manually
+  let body: any;
+  try {
+    body = await parseJsonBody(req);
+  } catch {
+    return res.status(400).json({ success: false, error: 'Invalid JSON body' });
   }
+
+  // Expect JSON body with base64 image data: { image: "base64string" }
+  const imageBase64 = body?.image;
+
+  if (!imageBase64 || typeof imageBase64 !== 'string') {
+    return res.status(400).json({
+      success: false,
+      error: 'No image data provided. Expected JSON body with "image" field containing base64.',
+    });
+  }
+
+  // Upload to ImgBB using base64
+  const formData = new URLSearchParams();
+  formData.append('image', imageBase64);
 
   const uploadResponse = await fetch(
     `https://api.imgbb.com/1/upload?key=${encodeURIComponent(key)}`,
     {
       method: 'POST',
-      body: req,
-      headers,
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData.toString(),
     }
   );
 
