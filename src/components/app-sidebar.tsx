@@ -3,21 +3,7 @@
 import * as React from "react"
 import fmLogo from "../../icon/fmlogo.png"
 import sidebarBgLogo from "../../icon/IMG_0011.jpeg"
-import {
-  CalendarDays,
-  ChevronsUpDown,
-  Cog,
-  House,
-  Images,
-  Loader2,
-  Moon,
-  Package,
-  Pencil,
-  Search,
-  Sun,
-  X,
-  Zap,
-} from "lucide-react"
+import { CalendarDays, Cog, House, Images, Loader as Loader2, Moon, Package, Pencil, Search, Sun, X } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -103,20 +89,6 @@ export function AppSidebar({
   currentPage?: string
 }) {
   const [searchQuery, setSearchQuery] = React.useState("")
-  const [actionOpen, setActionOpen] = React.useState(false)
-  const actionRef = React.useRef<HTMLDivElement>(null)
-  const touchStartYRef = React.useRef<number | null>(null)
-
-  React.useEffect(() => {
-    if (!actionOpen) return
-    const handler = (e: MouseEvent) => {
-      if (actionRef.current && !actionRef.current.contains(e.target as Node)) {
-        setActionOpen(false)
-      }
-    }
-    document.addEventListener("mousedown", handler)
-    return () => document.removeEventListener("mousedown", handler)
-  }, [actionOpen])
   const [unsavedDialogOpen, setUnsavedDialogOpen] = React.useState(false)
   const [isEditModeTransitioning, setIsEditModeTransitioning] = React.useState(false)
   const [openItem, setOpenItem] = React.useState<string | null>(
@@ -207,42 +179,64 @@ export function AppSidebar({
 
           {/* ── Header ──────────────────────────────────────────────────── */}
           <SidebarHeader className="p-0 shrink-0">
-            <div className="relative overflow-hidden h-[110px] rounded-t-[18px]">
+
+            {/* Hero banner */}
+            <div className="relative overflow-hidden h-[90px] rounded-t-[18px]">
               <img
                 src={sidebarBgLogo}
                 alt=""
                 aria-hidden="true"
-                className={`pointer-events-none absolute inset-0 h-full w-full object-cover ${
-                  mode === "light" ? "opacity-75" : "opacity-60"
+                className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+                  mode === "light" ? "opacity-70" : "opacity-50"
                 }`}
               />
-              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/20 to-background/70" />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-background/90" />
+
+              {/* FM logo inside banner */}
+              <button
+                type="button"
+                onClick={() => navigate("home")}
+                className="absolute bottom-2 left-3 flex items-center gap-2 group"
+                aria-label="Go to home"
+              >
+                <div className="size-9 rounded-xl bg-background/80 backdrop-blur-sm border border-border/40 shadow-sm flex items-center justify-center group-hover:bg-background transition-colors duration-150">
+                  <img
+                    src={fmLogo}
+                    alt="FM logo"
+                    className="h-7 w-7 object-contain"
+                  />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[11px] font-semibold text-white/90 leading-tight drop-shadow">Dbrutals</span>
+                  <span className="text-[9.5px] text-white/60 leading-tight drop-shadow">Delivery App</span>
+                </div>
+              </button>
             </div>
 
             {/* Search */}
-            <div className="relative px-3 pt-2 pb-1">
-              <Search className="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 size-[14px] text-muted-foreground" />
+            <div className="relative px-3 pt-2.5 pb-1.5">
+              <Search className="pointer-events-none absolute left-6 top-1/2 -translate-y-1/2 size-[13px] text-muted-foreground/60" />
               <input
                 type="text"
                 placeholder="Search…"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                className="h-9 w-full rounded-md border border-input bg-muted/40 pl-9 pr-7 text-[12.5px] outline-none ring-0 transition-all duration-150 placeholder:text-muted-foreground/50 focus:ring-1 focus:ring-ring focus:bg-background"
+                className="h-8 w-full rounded-lg border border-input/70 bg-muted/50 pl-8 pr-7 text-[12px] outline-none transition-all duration-150 placeholder:text-muted-foreground/40 focus:ring-1 focus:ring-ring/50 focus:bg-background focus:border-ring/50"
               />
               {searchQuery && (
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 size-4 flex items-center justify-center rounded-full bg-muted-foreground/20 text-muted-foreground hover:bg-muted-foreground/30 transition-colors"
                 >
-                  <X className="size-3.5" />
+                  <X className="size-2.5" />
                 </button>
               )}
             </div>
           </SidebarHeader>
 
           {/* ── Content ─────────────────────────────────────────────────── */}
-          <SidebarContent className="px-2 py-1 gap-0 overflow-y-auto min-h-0">
+          <SidebarContent className="px-2 py-0.5 gap-0 overflow-y-auto min-h-0">
 
             {/* Home */}
             {showHome && (
@@ -252,18 +246,23 @@ export function AppSidebar({
                     <SidebarMenuButton
                       tooltip="Home"
                       isActive={currentPage === "home"}
-                      className="font-medium transition-colors duration-150"
+                      className="font-medium text-[12.5px] h-8 transition-all duration-150 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
                       onClick={() => navigate("home")}
                     >
                       <House
-                        className="size-[14px]"
-                        style={{ color: "hsl(var(--accent-indigo))" }}
+                        className="size-[14px] shrink-0"
+                        style={{ color: currentPage === "home" ? "hsl(var(--primary))" : "hsl(var(--accent-indigo))" }}
                       />
                       <span>Home</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 </SidebarMenu>
               </SidebarGroup>
+            )}
+
+            {/* Divider after Home */}
+            {showHome && navItems.length > 0 && !q && (
+              <div className="mx-3 my-1 border-t border-sidebar-border/30" />
             )}
 
             {/* Main menu with submenus */}
@@ -278,6 +277,11 @@ export function AppSidebar({
               />
             )}
 
+            {/* Divider before Settings */}
+            {showSettings && !q && (
+              <div className="mx-3 my-1 border-t border-sidebar-border/30" />
+            )}
+
             {/* Settings */}
             {showSettings && (
               <SidebarGroup className="py-0 pb-1">
@@ -286,12 +290,12 @@ export function AppSidebar({
                     <SidebarMenuButton
                       tooltip="Settings"
                       isActive={isSettingsActive}
-                      className="font-medium transition-colors duration-150"
+                      className="font-medium text-[12.5px] h-8 transition-all duration-150 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
                       onClick={() => navigate("settings")}
                     >
                       <Cog
-                        className="size-[14px]"
-                        style={{ color: "hsl(var(--accent-amber))" }}
+                        className="size-[14px] shrink-0"
+                        style={{ color: isSettingsActive ? "hsl(var(--primary))" : "hsl(var(--accent-amber))" }}
                       />
                       <span>Settings</span>
                     </SidebarMenuButton>
@@ -302,118 +306,82 @@ export function AppSidebar({
 
             {/* No results */}
             {noResults && (
-              <div className="flex flex-col items-center gap-1.5 py-8 text-center animate-in fade-in duration-200">
-                <p className="text-xs font-medium text-muted-foreground">No results</p>
+              <div className="flex flex-col items-center gap-1.5 py-10 text-center animate-in fade-in duration-200">
+                <div className="size-8 rounded-full bg-muted flex items-center justify-center mb-1">
+                  <Search className="size-3.5 text-muted-foreground/50" />
+                </div>
+                <p className="text-xs font-medium text-muted-foreground">No results for "{q}"</p>
                 <p className="text-[11px] text-muted-foreground/50">Try a different keyword</p>
               </div>
             )}
           </SidebarContent>
 
           {/* ── Footer ──────────────────────────────────────────────────── */}
-          <SidebarFooter className="px-2 pb-2 pt-1 shrink-0">
-
-            {/* Action slide-up panel */}
-            <div className="relative" ref={actionRef}>
-              {/* Slide-up panel */}
-              <div
-                className="absolute bottom-full left-0 right-0 mb-2 z-[70] overflow-hidden rounded-xl border border-sidebar-border/60 bg-popover shadow-lg shadow-black/20"
-                style={{
-                  transition: 'opacity 0.22s ease, transform 0.22s cubic-bezier(0.16,1,0.3,1)',
-                  opacity: actionOpen ? 1 : 0,
-                  transform: actionOpen ? 'translateY(0)' : 'translateY(10px)',
-                  pointerEvents: actionOpen ? 'auto' : 'none',
-                }}
-                onTouchStart={e => { touchStartYRef.current = e.touches[0].clientY }}
-                onTouchEnd={e => {
-                  if (touchStartYRef.current === null) return
-                  const delta = e.changedTouches[0].clientY - touchStartYRef.current
-                  touchStartYRef.current = null
-                  if (delta > 50) setActionOpen(false)
-                }}
-              >
-                <div className="px-3 py-2 text-[10.5px] font-semibold uppercase tracking-widest text-muted-foreground">
-                  Quick Actions
-                </div>
-                <div className="border-t border-border/50 mx-2" />
-
-                {/* Theme */}
-                <button
-                  type="button"
-                  onClick={toggleMode}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-muted/60 transition-colors cursor-pointer"
-                >
-                  {mode === "dark"
-                    ? <Moon className="size-4 shrink-0 text-indigo-400" />
-                    : <Sun className="size-4 shrink-0 text-amber-400" />}
-                  <span className="flex-1 text-[12.5px] text-foreground text-left">
-                    {mode === "dark" ? "Dark Mode" : "Light Mode"}
-                  </span>
-                  <span onClick={e => e.stopPropagation()}>
-                    <Switch
-                      size="sm"
-                      className="fcal-switch-sidebar"
-                      checked={mode === "dark"}
-                      onCheckedChange={toggleMode}
-                    />
-                  </span>
-                </button>
-
-                {/* Edit mode */}
-                <button
-                  type="button"
-                  onClick={handleEditModeToggle}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-muted/60 transition-colors cursor-pointer ${isEditMode ? "text-primary" : ""}`}
-                >
-                  {isEditModeTransitioning
-                    ? <Loader2 className="size-4 shrink-0 animate-spin text-primary" />
-                    : <Pencil className={`size-4 shrink-0 ${isEditMode ? "text-emerald-400" : "text-muted-foreground"}`} />}
-                  <span className="flex-1 text-[12.5px] text-foreground text-left">
-                    {isEditModeTransitioning ? "Switching…" : "Edit Mode"}
-                  </span>
-                  {!isEditModeTransitioning && (
-                    <span onClick={e => e.stopPropagation()}>
-                      <Switch
-                        size="sm"
-                        className="fcal-switch-sidebar"
-                        checked={isEditMode}
-                        onCheckedChange={handleEditModeToggle}
-                      />
-                    </span>
-                  )}
-                </button>
-              </div>
-
-              {/* Trigger button */}
-              <button
-                type="button"
-                onClick={() => setActionOpen(v => !v)}
-                className="w-full flex items-center gap-2.5 rounded-lg border border-sidebar-border/50 bg-sidebar-accent/20 px-3 py-2.5 text-left transition-colors duration-150 hover:bg-sidebar-accent/40"
-                style={{ background: actionOpen ? 'hsl(var(--sidebar-accent)/0.5)' : undefined }}
-              >
-                <Zap className="size-[15px] shrink-0 text-amber-400" />
-                <span className="flex-1 text-[13px] font-medium text-sidebar-foreground">Action</span>
-                <ChevronsUpDown
-                  className="size-3.5 shrink-0 text-muted-foreground transition-transform duration-200"
-                  style={{ transform: actionOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
-                />
-              </button>
-            </div>
+          <SidebarFooter className="px-2 pb-3 pt-1 shrink-0">
 
             {/* Divider */}
-            <div className="border-t border-sidebar-border/40 mt-1" />
+            <div className="border-t border-sidebar-border/40 mb-2" />
 
-            {/* FM Logo */}
-            <button
-              type="button"
-              onClick={() => navigate("home")}
-              className="mx-auto flex items-center justify-center rounded-xl p-1 hover:bg-sidebar-accent/40 transition-colors duration-150"
-            >
-              <img
-                src={fmLogo}
-                alt="FM logo"
-                className="h-[72px] w-[72px] shrink-0 object-contain"
-              />
-            </button>
+            {/* Quick action rows */}
+            <div className="space-y-0.5">
+
+              {/* Theme toggle row */}
+              <button
+                type="button"
+                onClick={toggleMode}
+                className="w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 hover:bg-sidebar-accent/40 transition-colors duration-150 group"
+              >
+                <div className={`size-6 rounded-md flex items-center justify-center shrink-0 ${mode === "dark" ? "bg-slate-700/60" : "bg-amber-100/80"}`}>
+                  {mode === "dark"
+                    ? <Moon className="size-3.5 text-slate-300" />
+                    : <Sun className="size-3.5 text-amber-500" />}
+                </div>
+                <span className="flex-1 text-[12px] font-medium text-sidebar-foreground text-left">
+                  {mode === "dark" ? "Dark Mode" : "Light Mode"}
+                </span>
+                <span onClick={e => e.stopPropagation()} className="shrink-0">
+                  <Switch
+                    size="sm"
+                    checked={mode === "dark"}
+                    onCheckedChange={toggleMode}
+                  />
+                </span>
+              </button>
+
+              {/* Edit mode toggle row */}
+              <button
+                type="button"
+                onClick={handleEditModeToggle}
+                className={`w-full flex items-center gap-2.5 rounded-lg px-2.5 py-2 hover:bg-sidebar-accent/40 transition-colors duration-150 ${isEditMode ? "bg-emerald-500/8" : ""}`}
+              >
+                <div className={`size-6 rounded-md flex items-center justify-center shrink-0 ${isEditMode ? "bg-emerald-500/20" : "bg-muted/60"}`}>
+                  {isEditModeTransitioning
+                    ? <Loader2 className="size-3.5 animate-spin text-primary" />
+                    : <Pencil className={`size-3.5 ${isEditMode ? "text-emerald-500" : "text-muted-foreground"}`} />}
+                </div>
+                <span className="flex-1 text-[12px] font-medium text-sidebar-foreground text-left">
+                  {isEditModeTransitioning ? "Switching…" : "Edit Mode"}
+                </span>
+                {!isEditModeTransitioning && (
+                  <span onClick={e => e.stopPropagation()} className="shrink-0">
+                    <Switch
+                      size="sm"
+                      checked={isEditMode}
+                      onCheckedChange={handleEditModeToggle}
+                    />
+                  </span>
+                )}
+              </button>
+
+            </div>
+
+            {/* Version badge */}
+            <div className="mt-2 flex items-center justify-center">
+              <span className="text-[10px] text-muted-foreground/40 font-medium tracking-wide">
+                Dbrutals v1.0
+              </span>
+            </div>
+
           </SidebarFooter>
 
         </div>
