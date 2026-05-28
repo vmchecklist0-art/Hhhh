@@ -30,7 +30,7 @@ Deno.serve(async (req: Request) => {
   // POST /short-link — create a new short link
   if (req.method === "POST") {
     try {
-      const { longUrl } = await req.json() as { longUrl?: string }
+      const { longUrl, origin: clientOrigin } = await req.json() as { longUrl?: string; origin?: string }
       if (!longUrl || !longUrl.startsWith("http")) {
         return new Response(JSON.stringify({ error: "Invalid URL" }), {
           status: 400,
@@ -63,9 +63,7 @@ Deno.serve(async (req: Request) => {
 
       if (error) throw error
 
-      const origin = url.origin.includes("supabase")
-        ? Deno.env.get("SITE_URL") ?? url.origin
-        : url.origin
+      const origin = clientOrigin ?? Deno.env.get("SITE_URL") ?? url.origin
 
       return new Response(JSON.stringify({ slug, shortUrl: `${origin}/s/${slug}` }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
