@@ -248,26 +248,20 @@ const persistLinks = (links: SavedLink[]) => {
 }
 
 const shortenUrl = async (longUrl: string): Promise<string> => {
-  try {
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
-    const res = await fetch(`${supabaseUrl}/functions/v1/short-link`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${supabaseKey}`,
-      },
-      body: JSON.stringify({ longUrl }),
-      signal: AbortSignal.timeout(10000),
-    })
-    if (res.ok) {
-      const json = await res.json() as { shortUrl?: string }
-      if (json.shortUrl && json.shortUrl.startsWith("http")) return json.shortUrl
-    }
-  } catch {
-    // fall through to original URL
-  }
-  return longUrl
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
+  const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+  const res = await fetch(`${supabaseUrl}/functions/v1/short-link`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${supabaseKey}`,
+    },
+    body: JSON.stringify({ longUrl, origin: window.location.origin }),
+    signal: AbortSignal.timeout(15000),
+  })
+  const json = await res.json() as { shortUrl?: string; error?: string }
+  if (!res.ok || !json.shortUrl) throw new Error(json.error ?? "Failed to shorten link")
+  return json.shortUrl
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -644,7 +638,14 @@ export function DeliveryTableDialog() {
     })
     const longUrl = `${window.location.origin}/#loc=${encoded}`
     setCtGenerating(true)
-    const shortUrl = await shortenUrl(longUrl)
+    let shortUrl: string
+    try {
+      shortUrl = await shortenUrl(longUrl)
+    } catch (err) {
+      setCtGenerating(false)
+      toast.error(err instanceof Error ? err.message : "Failed to generate link")
+      return
+    }
     setCtGenerating(false)
     setCtGeneratedLink(shortUrl)
     const newLink: SavedLink = {
@@ -675,7 +676,14 @@ export function DeliveryTableDialog() {
     })
     const longUrl = `${window.location.origin}/#loc=${encoded}`
     setIsShortening(true)
-    const shortUrl = await shortenUrl(longUrl)
+    let shortUrl: string
+    try {
+      shortUrl = await shortenUrl(longUrl)
+    } catch (err) {
+      setIsShortening(false)
+      toast.error(err instanceof Error ? err.message : "Failed to generate link")
+      return
+    }
 
     const label = search.trim()
       ? `"${search.trim()}"`
