@@ -1341,116 +1341,122 @@ export function DeliveryTableDialog() {
         </div>
       )}
 
-      {/* ── Card List — fills remaining height, scrolls inside ── */}
+      {/* ── Table — fills remaining height, scrolls inside ── */}
       {(!loading || flat.length > 0) && !error && (() => {
-        const listKey = `${search}|${[...filterRoutes].sort().join(',')}|${[...filterDeliveries].sort().join(',')}|${sortKey}|${sortDir}`
+        const tbodyKey = `${search}|${[...filterRoutes].sort().join(',')}|${[...filterDeliveries].sort().join(',')}|${sortKey}|${sortDir}`
         return (
-        <div key={listKey} className="flex-1 overflow-y-auto min-h-0 px-3 py-2 space-y-2" style={{ animation: 'loc-table-fade 0.3s ease-out both' }}>
-          {displayed.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground gap-2">
-              <Search className="size-8 opacity-30" />
-              <p className="text-sm font-medium">No results found</p>
-              <p className="text-xs opacity-60">Try a different search or filter</p>
-            </div>
-          ) : (
-            displayed.map((pt, idx) => {
-              const delivery = effectiveDelivery(pt)
-              const active = isDeliveryActive(pt.delivery)
-              const km = pointDistances.get(pointKey(pt))
-              return (
-                <div
-                  key={`${pt.routeId}-${pt.code}-${idx}`}
-                  style={{
-                    animation: 'loc-row-in 0.22s ease-out both',
-                    animationDelay: `${Math.min(idx * 14, 280)}ms`,
-                  }}
-                  className={cn(
-                    "relative flex items-center gap-3 rounded-xl border px-3 py-3 transition-colors duration-150",
-                    (pt._dupCode || pt._dupName)
-                      ? "border-amber-300/60 bg-amber-50/60 dark:bg-amber-900/10 dark:border-amber-700/40"
-                      : "border-border/60 bg-card hover:bg-muted/30"
-                  )}
-                >
-                  {/* Index pill */}
-                  {visibleColumns.has("no") && (
-                    <span className="shrink-0 flex items-center justify-center w-7 h-7 rounded-lg bg-muted text-[11px] font-bold text-muted-foreground tabular-nums">
-                      {idx + 1}
-                    </span>
-                  )}
-
-                  {/* Main info */}
-                  <div className="flex-1 min-w-0">
-                    {/* Code + dup warning */}
+        <div className="flex-1 overflow-auto min-h-0" style={{ animation: 'loc-table-fade 0.3s ease-out both' }}>
+          <table className="border-collapse text-[11px] whitespace-nowrap min-w-max w-full">
+            <thead className="sticky top-0 z-10 bg-muted/90 backdrop-blur-sm text-[10px] uppercase tracking-widest text-muted-foreground font-bold border-b border-border">
+              <tr>
+                {visibleColumns.has("no")       && <th className="px-3 py-2.5 text-center w-10">#</th>}
+                {visibleColumns.has("route")    && <th className="px-3 py-2.5 text-left">Route</th>}
+                {visibleColumns.has("code")     && <th className="px-3 py-2.5 text-left">Code</th>}
+                {visibleColumns.has("name")     && <th className="px-3 py-2.5 text-left">Name</th>}
+                {visibleColumns.has("delivery") && <th className="px-3 py-2.5 text-center">Delivery</th>}
+                {visibleColumns.has("km")       && <th className="px-3 py-2.5 text-center">KM</th>}
+                {visibleColumns.has("action")   && <th className="px-2 py-2.5 text-center w-12"></th>}
+              </tr>
+            </thead>
+            <tbody key={tbodyKey}>
+              {displayed.length === 0 ? (
+                <tr>
+                  <td colSpan={visibleColumns.size} className="text-center py-16 text-muted-foreground text-[13px]">
+                    No results found.
+                  </td>
+                </tr>
+              ) : (
+                displayed.map((pt, idx) => {
+                  const deliveryItem = DELIVERY_MAP.get(effectiveDelivery(pt))
+                  return (
+                  <tr
+                    key={`${pt.routeId}-${pt.code}-${idx}`}
+                    style={{
+                      animation: 'loc-row-in 0.22s ease-out both',
+                      animationDelay: `${Math.min(idx * 18, 320)}ms`,
+                    }}
+                    className={cn(
+                      "border-b border-border/40 transition-colors duration-100",
+                      (pt._dupCode || pt._dupName)
+                        ? "bg-amber-50/60 dark:bg-amber-900/10 hover:bg-amber-100/60 dark:hover:bg-amber-900/20"
+                        : "hover:bg-muted/50"
+                    )}
+                  >
+                    {visibleColumns.has("no") && (
+                      <td className="px-3 py-2.5 text-center text-muted-foreground/60 w-10 text-[11px] tabular-nums font-medium">{idx + 1}</td>
+                    )}
+                    {visibleColumns.has("route") && (
+                      <td className="px-3 py-2.5 text-left">
+                        <span className="text-[12px] font-medium text-foreground">{pt.routeName}</span>
+                      </td>
+                    )}
                     {visibleColumns.has("code") && (
-                      <div className="flex items-center gap-1 mb-0.5">
+                      <td className="px-3 py-2.5 text-left">
                         <span className={cn(
-                          "text-[13px] font-bold tracking-wide leading-tight",
+                          "text-[12px] font-semibold tracking-wide",
                           pt._dupCode ? "text-amber-600 dark:text-amber-400" : "text-foreground"
                         )}>
                           {pt.code}
                         </span>
-                        {pt._dupCode && <AlertTriangle className="size-3 text-amber-500 shrink-0" />}
-                      </div>
+                        {pt._dupCode && <AlertTriangle className="inline w-3 h-3 ml-1 text-amber-500" />}
+                      </td>
                     )}
-                    {/* Name */}
                     {visibleColumns.has("name") && (
-                      <div className="flex items-center gap-1">
+                      <td className="px-3 py-2.5 text-left max-w-[200px]">
                         <span className={cn(
-                          "text-[11px] leading-snug truncate",
-                          pt._dupName ? "text-rose-600 dark:text-rose-400 font-semibold" : "text-muted-foreground"
+                          "text-[12px] block truncate",
+                          pt._dupName ? "text-rose-600 dark:text-rose-400 font-semibold" : "text-foreground/90"
                         )}>
                           {pt.name}
                         </span>
-                        {pt._dupName && <AlertTriangle className="size-3 text-rose-500 shrink-0" />}
-                      </div>
+                        {pt._dupName && <AlertTriangle className="inline w-3 h-3 ml-1 text-rose-500" />}
+                      </td>
                     )}
-                    {/* Route */}
-                    {visibleColumns.has("route") && (
-                      <span className="text-[10px] text-muted-foreground/60 font-medium mt-0.5 block truncate">
-                        {pt.routeName}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Right side: delivery + km */}
-                  <div className="shrink-0 flex flex-col items-end gap-1">
                     {visibleColumns.has("delivery") && (
-                      <span className={cn(
-                        "text-[11px] font-semibold px-2 py-0.5 rounded-md",
-                        active
-                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                          : "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400"
-                      )}>
-                        {delivery}
-                      </span>
+                      <td className="px-3 py-2.5 text-center">
+                        {deliveryItem ? (
+                          <span className={cn(
+                            "inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide border",
+                            deliveryItem.color,
+                            deliveryItem.textColor,
+                            "border-transparent"
+                          )}>
+                            {deliveryItem.label}
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground">{effectiveDelivery(pt)}</span>
+                        )}
+                      </td>
                     )}
-                    {visibleColumns.has("km") && km && (
-                      <span className="text-[10px] text-muted-foreground/70 tabular-nums font-medium">
-                        {km}
-                      </span>
+                    {visibleColumns.has("km") && (
+                      <td className="px-3 py-2.5 text-center text-[11px] tabular-nums text-muted-foreground font-medium">
+                        {pointDistances.get(pointKey(pt)) ?? ""}
+                      </td>
                     )}
-                  </div>
-
-                  {/* Info button */}
-                  {visibleColumns.has("action") && (
-                    <button
-                      type="button"
-                      onClick={() => setActiveActionPoint(pt)}
-                      className={cn(
-                        "shrink-0 flex items-center justify-center size-8 rounded-lg transition-colors",
-                        active
-                          ? "text-emerald-600 hover:bg-emerald-100 dark:hover:bg-emerald-900/30"
-                          : "text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30"
-                      )}
-                      aria-label={`View info for ${pt.name}`}
-                    >
-                      <Info className="size-4" />
-                    </button>
-                  )}
-                </div>
-              )
-            })
-          )}
+                    {visibleColumns.has("action") && (
+                      <td className="px-2 py-2.5 text-center">
+                        <button
+                          type="button"
+                          className={cn(
+                            "inline-flex size-7 items-center justify-center rounded-lg transition-colors",
+                            isDeliveryActive(pt.delivery)
+                              ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+                              : 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
+                          )}
+                          aria-label={`View info for ${pt.name}`}
+                          title={`View info for ${pt.name}`}
+                          onClick={() => setActiveActionPoint(pt)}
+                        >
+                          <Info className="size-3.5" />
+                          <span className="sr-only">Info</span>
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                )})
+              )}
+            </tbody>
+          </table>
         </div>
         )
       })()}
