@@ -20,17 +20,18 @@ Deno.serve(async (req: Request) => {
     return new Response(null, { status: 200, headers: corsHeaders })
   }
 
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-  )
+  try {
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    )
 
-  const url = new URL(req.url)
+    const url = new URL(req.url)
 
-  // POST /short-link — create a new short link
-  if (req.method === "POST") {
-    try {
-      const { longUrl } = await req.json() as { longUrl?: string }
+    // POST — create a new short link
+    if (req.method === "POST") {
+      const { longUrl, origin: clientOrigin } = await req.json() as { longUrl?: string; origin?: string }
+
       if (!longUrl || !longUrl.startsWith("http")) {
         return new Response(JSON.stringify({ error: "Invalid URL" }), {
           status: 400,
@@ -63,52 +64,51 @@ Deno.serve(async (req: Request) => {
 
       if (error) throw error
 
-      const origin = url.origin.includes("supabase")
-        ? Deno.env.get("SITE_URL") ?? url.origin
-        : url.origin
+      const appOrigin = clientOrigin ?? Deno.env.get("SITE_URL") ?? "https://your-app.com"
 
-      return new Response(JSON.stringify({ slug, shortUrl: `${origin}/s/${slug}` }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      })
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error"
-      return new Response(JSON.stringify({ error: message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      })
-    }
-  }
-
-  // GET /short-link?slug=xxx — resolve a slug to its long URL
-  if (req.method === "GET") {
-    const slug = url.searchParams.get("slug")
-    if (!slug) {
-      return new Response(JSON.stringify({ error: "Missing slug" }), {
-        status: 400,
+      return new Response(JSON.stringify({ slug, shortUrl: `${appOrigin}/s/${slug}` }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       })
     }
 
-    const { data, error } = await supabase
-      .from("short_links")
-      .select("long_url")
-      .eq("slug", slug)
-      .maybeSingle()
+    // GET ?slug=xxx — resolve a slug to its long URL
+    if (req.method === "GET") {
+      const slug = url.searchParams.get("slug")
 
-    if (error || !data) {
-      return new Response(JSON.stringify({ error: "Not found" }), {
-        status: 404,
+      if (!slug) {
+        return new Response(JSON.stringify({ error: "Missing slug" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        })
+      }
+
+      const { data, error } = await supabase
+        .from("short_links")
+        .select("long_url")
+        .eq("slug", slug)
+        .maybeSingle()
+
+      if (error || !data) {
+        return new Response(JSON.stringify({ error: "Not found" }), {
+          status: 404,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        })
+      }
+
+      return new Response(JSON.stringify({ longUrl: data.long_url }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       })
     }
 
-    return new Response(JSON.stringify({ longUrl: data.long_url }), {
+    return new Response(JSON.stringify({ error: "Method not allowed" }), {
+      status: 405,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    })
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Unknown error"
+    return new Response(JSON.stringify({ error: message }), {
+      status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
   }
-
-  return new Response(JSON.stringify({ error: "Method not allowed" }), {
-    status: 405,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  })
 })
