@@ -8,12 +8,10 @@ import {
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Separator } from "@/components/ui/separator"
 import { Switch } from "@/components/ui/switch"
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { useTheme, FONT_OPTIONS, type AppFont } from "@/hooks/use-theme"
 import { useEditMode } from "@/contexts/EditModeContext"
-import { LS_IMGBB_KEY } from "@/lib/imgbb"
 import { DEFAULT_ROUTE_COLORS } from "@/lib/route-colors"
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -139,19 +137,9 @@ export function Settings({ section = "profile" }: { section?: SectionId }) {
   const [showPasswords, setShowPasswords] = useState({ current: false, new: false, confirm: false })
   const [storageTab, setStorageTab] = useState<"database" | "local">("database")
 
-  // ImgBB API key
-  const [imgbbKey, setImgbbKey] = useState(() => localStorage.getItem(LS_IMGBB_KEY) ?? "")
-  const [showImgbbKey, setShowImgbbKey] = useState(false)
-  const imgbbOriginalRef = useRef(imgbbKey)
-
   const handleSaveProfile = () => {
     localStorage.setItem(LS_PROFILE, JSON.stringify(profile))
     profileOriginalRef.current = profile
-  }
-
-  const handleSaveImgbbKey = () => {
-    localStorage.setItem(LS_IMGBB_KEY, imgbbKey)
-    imgbbOriginalRef.current = imgbbKey
   }
 
   // Map state
@@ -228,8 +216,6 @@ export function Settings({ section = "profile" }: { section?: SectionId }) {
     )
   }, [profile])
 
-  const imgbbDirty = useMemo(() => imgbbKey !== imgbbOriginalRef.current, [imgbbKey])
-
   const settingsDirty = useMemo(() => {
     switch (active) {
       case "profile":
@@ -238,12 +224,10 @@ export function Settings({ section = "profile" }: { section?: SectionId }) {
         return mapDirty
       case "route-colors":
         return routesListDirty
-      case "security":
-        return imgbbDirty
       default:
         return false
     }
-  }, [active, profileDirty, imgbbDirty, mapDirty, routesListDirty])
+  }, [active, profileDirty, mapDirty, routesListDirty])
 
   const saveActiveSection = useCallback(async () => {
     switch (active) {
@@ -256,13 +240,10 @@ export function Settings({ section = "profile" }: { section?: SectionId }) {
       case "route-colors":
         if (routesListDirty) await handleSaveRouteColorsList()
         break
-      case "security":
-        if (imgbbDirty) handleSaveImgbbKey()
-        break
       default:
         break
     }
-  }, [active, profileDirty, imgbbDirty, mapDirty, routesListDirty, mapLat, mapLng, mapZoom, imgbbKey, profile, routesList])
+  }, [active, profileDirty, mapDirty, routesListDirty, mapLat, mapLng, mapZoom, profile, routesList])
 
   useEffect(() => {
     if (!isEditMode || !settingsDirty) return
@@ -701,31 +682,6 @@ export function Settings({ section = "profile" }: { section?: SectionId }) {
           <div className="space-y-6">
             <SectionHeader icon={<Lock className="size-5" />} title="Security" description="Tukar kata laluan akaun anda." />
             <div className="space-y-5">
-              {/* ImgBB API Key */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Globe className="size-4" />ImgBB API Key
-                </label>
-                <p className="text-xs text-muted-foreground">Used to upload images to ImgBB. Get your API key at <span className="font-mono text-foreground">api.imgbb.com</span>.</p>
-                <div className="relative">
-                  <Input
-                    type={showImgbbKey ? "text" : "password"}
-                    value={imgbbKey}
-                    onChange={e => setImgbbKey(e.target.value)}
-                    placeholder="Enter ImgBB API key"
-                    className="pr-10 font-mono text-sm"
-                  />
-                  <button
-                    onClick={() => setShowImgbbKey(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                    type="button"
-                  >
-                    {showImgbbKey ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <Separator />
 
                 <div className="space-y-2.5">
                 <label className="text-sm font-medium flex items-center gap-2"><Shield className="size-4" />Current Password</label>
