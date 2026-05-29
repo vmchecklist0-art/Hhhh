@@ -389,17 +389,13 @@ export function AppSidebar({
             <div className="border-t border-sidebar-border/40 mt-1" />
 
             {/* FM Logo */}
-            <button
-              type="button"
-              onClick={() => navigate("home")}
-              className="mx-auto flex items-center justify-center rounded-xl p-1 hover:bg-sidebar-accent/40 transition-colors duration-150"
-            >
+            <div className="mx-auto flex items-center justify-center rounded-xl p-1">
               <img
                 src={fmLogo}
                 alt="FM logo"
                 className="h-[72px] w-[72px] shrink-0 object-contain"
               />
-            </button>
+            </div>
           </SidebarFooter>
 
         </div>
