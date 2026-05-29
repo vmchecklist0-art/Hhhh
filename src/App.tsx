@@ -1939,21 +1939,56 @@ export function App() {
     return undefined
   }, [landed])
 
-  // /s/:slug — show preview page, on enter resolve long URL and load it
+  // /s/:slug — resolve short link then render just the table (no sidebar, no landing)
+  const [shareReady, setShareReady] = useState(false)
+  const [shareError, setShareError] = useState(false)
+
   if (shareSlug) {
+    if (!shareReady && !shareError) {
+      return (
+        <DeviceProvider>
+          <ErrorBoundary>
+            <SharePreviewPage
+              slug={shareSlug}
+              onEnter={(longUrl) => {
+                const hashIndex = longUrl.indexOf("#")
+                const hash = hashIndex !== -1 ? longUrl.slice(hashIndex) : ""
+                window.history.replaceState(null, "", "/s/" + shareSlug + hash)
+                setShareReady(true)
+              }}
+              onError={() => setShareError(true)}
+            />
+          </ErrorBoundary>
+        </DeviceProvider>
+      )
+    }
+
+    if (shareError) {
+      return (
+        <DeviceProvider>
+          <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-background">
+            <div className="w-full max-w-sm rounded-2xl border border-destructive/30 bg-destructive/5 p-8 flex flex-col items-center gap-3 text-center">
+              <p className="text-[15px] font-semibold text-foreground">Link not found</p>
+              <p className="text-[12px] text-muted-foreground">This link may have expired or is invalid.</p>
+            </div>
+          </div>
+        </DeviceProvider>
+      )
+    }
+
+    // shareReady — render table only, full screen, no sidebar
     return (
       <DeviceProvider>
         <ErrorBoundary>
-          <SharePreviewPage
-            slug={shareSlug}
-            onEnter={(longUrl) => {
-              // Replace path with root and set the hash so the normal app loads the shared view
-              const hashIndex = longUrl.indexOf("#")
-              const hash = hashIndex !== -1 ? longUrl.slice(hashIndex) : ""
-              window.history.replaceState(null, "", "/" + hash)
-              window.location.reload()
-            }}
-          />
+          <EditModeProvider>
+            <RefreshProvider>
+              <div className="h-dvh w-full flex flex-col overflow-hidden bg-background">
+                <Suspense fallback={<div className="flex-1 flex items-center justify-center text-muted-foreground text-sm">Loading…</div>}>
+                  <DeliveryTableDialog />
+                </Suspense>
+              </div>
+            </RefreshProvider>
+          </EditModeProvider>
           <Toaster
             position="top-right"
             toastOptions={{
