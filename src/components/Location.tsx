@@ -257,7 +257,7 @@ const shortenUrl = async (longUrl: string): Promise<string> => {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${supabaseKey}`,
       },
-      body: JSON.stringify({ longUrl, origin: window.location.origin }),
+      body: JSON.stringify({ longUrl }),
       signal: AbortSignal.timeout(10000),
     })
     if (res.ok) {
