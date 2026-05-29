@@ -713,7 +713,36 @@ export function DeliveryTableDialog() {
   return (
     <div className="flex flex-col flex-1 min-h-0 border rounded-xl overflow-hidden shadow-sm bg-background">
 
+      {/* ── Shared-view header ─────────────────────────────────────── */}
+      {isSharedView && (
+        <div className="shrink-0 border-b bg-gradient-to-r from-background via-muted/30 to-background">
+          <div className="flex items-center gap-3 px-4 py-3">
+            {/* Icon */}
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary/10 border border-primary/15 shrink-0">
+              <LayoutList className="size-4 text-primary" />
+            </div>
+            {/* Title + meta */}
+            <div className="flex-1 min-w-0">
+              <p className="text-[15px] font-bold text-foreground leading-tight truncate">
+                {initHash.current?.ctitle ?? "Shared Table"}
+              </p>
+              {!loading && !error && (
+                <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">
+                  {displayed.length} location{displayed.length !== 1 ? "s" : ""}
+                  {routes.length > 0 && ` · ${routes.length} route${routes.length !== 1 ? "s" : ""}`}
+                </p>
+              )}
+            </div>
+            {/* Read-only badge */}
+            <span className="flex items-center gap-1 h-6 px-2.5 rounded-full border border-border bg-muted text-muted-foreground text-[10px] font-semibold shrink-0">
+              <Info className="size-2.5" />Read-only
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* ── Toolbar ─────────────────────────────────────────────────── */}
+      {!isSharedView && (
       <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 border-b bg-muted/40 shrink-0">
         {!loading && !error && (
           <span className="text-[10px] font-semibold text-muted-foreground tabular-nums shrink-0">
@@ -736,13 +765,8 @@ export function DeliveryTableDialog() {
             <Navigation2 className="size-2.5 text-white" />Optimised
           </span>
         )}
-        {/* ── Read-only badge (shared view) / unified Links action ── */}
-        {isSharedView ? (
-          <span className="ml-auto flex items-center gap-1 h-6 px-2 rounded-full border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-semibold shrink-0">
-            <Info className="size-2.5" />Read-only
-          </span>
-        ) : (
-          <div className="ml-auto flex items-center gap-1 shrink-0">
+        {/* ── Links action ── */}
+        <div className="ml-auto flex items-center gap-1 shrink-0">
             <Button
               size="sm"
               variant="ghost"
@@ -766,7 +790,6 @@ export function DeliveryTableDialog() {
               )}
             </Button>
           </div>
-        )}
 
         <Dialog open={linksOpen} onOpenChange={open => {
           setLinksOpen(open)
@@ -1023,13 +1046,6 @@ export function DeliveryTableDialog() {
           </span>
         )}
       </div>
-
-      {/* ── Shared custom-table title banner ────────────────────────── */}
-      {isSharedView && initHash.current?.ctitle && (
-        <div className="px-4 py-2 bg-primary/5 border-b border-primary/15 shrink-0 flex items-center gap-2">
-          <LayoutList className="size-3.5 text-primary/70 shrink-0" />
-          <p className="text-[13px] font-semibold text-primary">{initHash.current.ctitle}</p>
-        </div>
       )}
 
       {/* ── Search + Filter Bar ─────────────────────────────────────── */}
@@ -1331,26 +1347,28 @@ export function DeliveryTableDialog() {
         return (
         <div className="flex-1 overflow-auto min-h-0" style={{ animation: 'loc-table-fade 0.3s ease-out both' }}>
           <table className="border-collapse text-[11px] whitespace-nowrap min-w-max w-full">
-            <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm text-[11px] uppercase tracking-wider text-muted-foreground font-semibold border-b border-border">
+            <thead className="sticky top-0 z-10 bg-muted/90 backdrop-blur-sm text-[10px] uppercase tracking-widest text-muted-foreground font-bold border-b border-border">
               <tr>
-                {visibleColumns.has("no")       && <th className="px-3 py-3 text-center w-10">#</th>}
-                {visibleColumns.has("route")    && <th className="px-3 py-3 text-center">Route</th>}
-                {visibleColumns.has("code")     && <th className="px-3 py-3 text-center">Code</th>}
-                {visibleColumns.has("name")     && <th className="px-3 py-3 text-center">Name</th>}
-                {visibleColumns.has("delivery") && <th className="px-3 py-3 text-center">Delivery</th>}
-                {visibleColumns.has("km")       && <th className="px-3 py-3 text-center">KM</th>}
-                {visibleColumns.has("action")   && <th className="px-2 py-3 text-center w-12">Action</th>}
+                {visibleColumns.has("no")       && <th className="px-3 py-2.5 text-center w-10">#</th>}
+                {visibleColumns.has("route")    && <th className="px-3 py-2.5 text-left">Route</th>}
+                {visibleColumns.has("code")     && <th className="px-3 py-2.5 text-left">Code</th>}
+                {visibleColumns.has("name")     && <th className="px-3 py-2.5 text-left">Name</th>}
+                {visibleColumns.has("delivery") && <th className="px-3 py-2.5 text-center">Delivery</th>}
+                {visibleColumns.has("km")       && <th className="px-3 py-2.5 text-center">KM</th>}
+                {visibleColumns.has("action")   && <th className="px-2 py-2.5 text-center w-12"></th>}
               </tr>
             </thead>
-            <tbody key={tbodyKey} className="font-semibold">
+            <tbody key={tbodyKey}>
               {displayed.length === 0 ? (
                 <tr>
-                  <td colSpan={visibleColumns.size} className="text-center py-16 text-muted-foreground">
+                  <td colSpan={visibleColumns.size} className="text-center py-16 text-muted-foreground text-[13px]">
                     No results found.
                   </td>
                 </tr>
               ) : (
-                displayed.map((pt, idx) => (
+                displayed.map((pt, idx) => {
+                  const deliveryItem = DELIVERY_MAP.get(effectiveDelivery(pt))
+                  return (
                   <tr
                     key={`${pt.routeId}-${pt.code}-${idx}`}
                     style={{
@@ -1358,55 +1376,73 @@ export function DeliveryTableDialog() {
                       animationDelay: `${Math.min(idx * 18, 320)}ms`,
                     }}
                     className={cn(
-                      "transition-colors duration-150",
+                      "border-b border-border/40 transition-colors duration-100",
                       (pt._dupCode || pt._dupName)
                         ? "bg-amber-50/60 dark:bg-amber-900/10 hover:bg-amber-100/60 dark:hover:bg-amber-900/20"
-                        : idx % 2 === 0 ? "hover:bg-muted/40" : "bg-muted/20 hover:bg-muted/40"
+                        : "hover:bg-muted/50"
                     )}
                   >
                     {visibleColumns.has("no") && (
-                      <td className="px-3 py-2 text-center text-muted-foreground w-10 text-[11px] tabular-nums">{idx + 1}</td>
+                      <td className="px-3 py-2.5 text-center text-muted-foreground/60 w-10 text-[11px] tabular-nums font-medium">{idx + 1}</td>
                     )}
                     {visibleColumns.has("route") && (
-                      <td className="px-3 py-2 text-center">
-                        <span className="text-[11px] text-foreground">{pt.routeName}</span>
+                      <td className="px-3 py-2.5 text-left">
+                        <span className="text-[12px] font-medium text-foreground">{pt.routeName}</span>
                       </td>
                     )}
                     {visibleColumns.has("code") && (
-                      <td className="px-3 py-2 text-center">
-                        <span className={cn("text-[11px] font-medium", pt._dupCode && "text-amber-600 dark:text-amber-400 font-bold")}>
+                      <td className="px-3 py-2.5 text-left">
+                        <span className={cn(
+                          "text-[12px] font-semibold tracking-wide",
+                          pt._dupCode ? "text-amber-600 dark:text-amber-400" : "text-foreground"
+                        )}>
                           {pt.code}
                         </span>
                         {pt._dupCode && <AlertTriangle className="inline w-3 h-3 ml-1 text-amber-500" />}
                       </td>
                     )}
                     {visibleColumns.has("name") && (
-                      <td className="px-3 py-2 text-center">
-                        <span className={cn("text-[11px]", pt._dupName && "text-rose-600 dark:text-rose-400 font-semibold")}>
+                      <td className="px-3 py-2.5 text-left max-w-[200px]">
+                        <span className={cn(
+                          "text-[12px] block truncate",
+                          pt._dupName ? "text-rose-600 dark:text-rose-400 font-semibold" : "text-foreground/90"
+                        )}>
                           {pt.name}
                         </span>
                         {pt._dupName && <AlertTriangle className="inline w-3 h-3 ml-1 text-rose-500" />}
                       </td>
                     )}
                     {visibleColumns.has("delivery") && (
-                      <td className="px-3 py-2 text-center text-[11px]">
-                        {effectiveDelivery(pt)}
+                      <td className="px-3 py-2.5 text-center">
+                        {deliveryItem ? (
+                          <span className={cn(
+                            "inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide border",
+                            deliveryItem.color,
+                            deliveryItem.textColor,
+                            "border-transparent"
+                          )}>
+                            {deliveryItem.label}
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-muted-foreground">{effectiveDelivery(pt)}</span>
+                        )}
                       </td>
                     )}
                     {visibleColumns.has("km") && (
-                      <td className="px-3 py-2 text-center text-[11px] tabular-nums text-muted-foreground">
+                      <td className="px-3 py-2.5 text-center text-[11px] tabular-nums text-muted-foreground font-medium">
                         {pointDistances.get(pointKey(pt)) ?? ""}
                       </td>
                     )}
                     {visibleColumns.has("action") && (
-                      <td className="px-2 py-2 text-center">
+                      <td className="px-2 py-2.5 text-center">
                         <button
                           type="button"
-                          className={`inline-flex size-6 items-center justify-center p-0 transition-colors ${
+                          className={cn(
+                            "inline-flex size-7 items-center justify-center rounded-lg transition-colors",
                             isDeliveryActive(pt.delivery)
-                              ? 'text-emerald-600 hover:text-emerald-700'
-                              : 'text-red-500 hover:text-red-600'
-                          }`}
+                              ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+                              : 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
+                          )}
                           aria-label={`View info for ${pt.name}`}
                           title={`View info for ${pt.name}`}
                           onClick={() => setActiveActionPoint(pt)}
@@ -1417,7 +1453,7 @@ export function DeliveryTableDialog() {
                       </td>
                     )}
                   </tr>
-                ))
+                )})
               )}
             </tbody>
           </table>
@@ -1425,6 +1461,19 @@ export function DeliveryTableDialog() {
         )
       })()}
 
+      {/* ── Shared-view footer ─────────────────────────────────────── */}
+      {isSharedView && (
+        <div className="shrink-0 border-t border-border/50 bg-muted/20 px-4 py-2 flex items-center justify-between">
+          <span className="text-[10px] text-muted-foreground/60 font-medium tracking-wide">
+            FamilyMart Location · Read-only view
+          </span>
+          {!loading && !error && (
+            <span className="text-[10px] text-muted-foreground/60 tabular-nums">
+              {displayed.length} / {totalPoints} pts
+            </span>
+          )}
+        </div>
+      )}
 
       {/* ── Settings Modal ──────────────────────────────────────────── */}
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
