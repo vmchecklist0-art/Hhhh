@@ -1347,21 +1347,21 @@ export function DeliveryTableDialog() {
         return (
         <div className="flex-1 overflow-auto min-h-0" style={{ animation: 'loc-table-fade 0.3s ease-out both' }}>
           <table className="border-collapse text-[11px] whitespace-nowrap min-w-max w-full">
-            <thead className="sticky top-0 z-10 bg-muted/90 backdrop-blur-sm text-[10px] uppercase tracking-widest text-muted-foreground font-bold border-b border-border">
+            <thead className="sticky top-0 z-10 bg-muted/80 backdrop-blur-sm text-[11px] uppercase tracking-wider text-muted-foreground font-semibold border-b border-border">
               <tr>
-                {visibleColumns.has("no")       && <th className="px-3 py-2.5 text-center w-10">#</th>}
-                {visibleColumns.has("route")    && <th className="px-3 py-2.5 text-left">Route</th>}
-                {visibleColumns.has("code")     && <th className="px-3 py-2.5 text-left">Code</th>}
-                {visibleColumns.has("name")     && <th className="px-3 py-2.5 text-left">Name</th>}
-                {visibleColumns.has("delivery") && <th className="px-3 py-2.5 text-center">Delivery</th>}
-                {visibleColumns.has("km")       && <th className="px-3 py-2.5 text-center">KM</th>}
-                {visibleColumns.has("action")   && <th className="px-2 py-2.5 text-center w-12"></th>}
+                {visibleColumns.has("no")       && <th className="px-3 py-3 text-center w-10">#</th>}
+                {visibleColumns.has("route")    && <th className="px-3 py-3 text-center">Route</th>}
+                {visibleColumns.has("code")     && <th className="px-3 py-3 text-center">Code</th>}
+                {visibleColumns.has("name")     && <th className="px-3 py-3 text-center">Name</th>}
+                {visibleColumns.has("delivery") && <th className="px-3 py-3 text-center">Delivery</th>}
+                {visibleColumns.has("km")       && <th className="px-3 py-3 text-center">KM</th>}
+                {visibleColumns.has("action")   && <th className="px-2 py-3 text-center w-12">Action</th>}
               </tr>
             </thead>
-            <tbody key={tbodyKey}>
+            <tbody key={tbodyKey} className="font-semibold">
               {displayed.length === 0 ? (
                 <tr>
-                  <td colSpan={visibleColumns.size} className="text-center py-16 text-muted-foreground text-[13px]">
+                  <td colSpan={visibleColumns.size} className="text-center py-16 text-muted-foreground">
                     No results found.
                   </td>
                 </tr>
@@ -1376,73 +1376,65 @@ export function DeliveryTableDialog() {
                       animationDelay: `${Math.min(idx * 18, 320)}ms`,
                     }}
                     className={cn(
-                      "border-b border-border/40 transition-colors duration-100",
+                      "transition-colors duration-150",
                       (pt._dupCode || pt._dupName)
                         ? "bg-amber-50/60 dark:bg-amber-900/10 hover:bg-amber-100/60 dark:hover:bg-amber-900/20"
-                        : "hover:bg-muted/50"
+                        : idx % 2 === 0 ? "hover:bg-muted/40" : "bg-muted/20 hover:bg-muted/40"
                     )}
                   >
                     {visibleColumns.has("no") && (
-                      <td className="px-3 py-2.5 text-center text-muted-foreground/60 w-10 text-[11px] tabular-nums font-medium">{idx + 1}</td>
+                      <td className="px-3 py-2 text-center text-muted-foreground w-10 text-[11px] tabular-nums">{idx + 1}</td>
                     )}
                     {visibleColumns.has("route") && (
-                      <td className="px-3 py-2.5 text-left">
-                        <span className="text-[12px] font-medium text-foreground">{pt.routeName}</span>
+                      <td className="px-3 py-2 text-center">
+                        <span className="text-[11px] text-foreground">{pt.routeName}</span>
                       </td>
                     )}
                     {visibleColumns.has("code") && (
-                      <td className="px-3 py-2.5 text-left">
-                        <span className={cn(
-                          "text-[12px] font-semibold tracking-wide",
-                          pt._dupCode ? "text-amber-600 dark:text-amber-400" : "text-foreground"
-                        )}>
+                      <td className="px-3 py-2 text-center">
+                        <span className={cn("text-[11px] font-medium", pt._dupCode && "text-amber-600 dark:text-amber-400 font-bold")}>
                           {pt.code}
                         </span>
                         {pt._dupCode && <AlertTriangle className="inline w-3 h-3 ml-1 text-amber-500" />}
                       </td>
                     )}
                     {visibleColumns.has("name") && (
-                      <td className="px-3 py-2.5 text-left max-w-[200px]">
-                        <span className={cn(
-                          "text-[12px] block truncate",
-                          pt._dupName ? "text-rose-600 dark:text-rose-400 font-semibold" : "text-foreground/90"
-                        )}>
+                      <td className="px-3 py-2 text-center">
+                        <span className={cn("text-[11px]", pt._dupName && "text-rose-600 dark:text-rose-400 font-semibold")}>
                           {pt.name}
                         </span>
                         {pt._dupName && <AlertTriangle className="inline w-3 h-3 ml-1 text-rose-500" />}
                       </td>
                     )}
                     {visibleColumns.has("delivery") && (
-                      <td className="px-3 py-2.5 text-center">
+                      <td className="px-3 py-2 text-center">
                         {deliveryItem ? (
                           <span className={cn(
-                            "inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wide border",
+                            "inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold border border-transparent",
                             deliveryItem.color,
                             deliveryItem.textColor,
-                            "border-transparent"
                           )}>
                             {deliveryItem.label}
                           </span>
                         ) : (
-                          <span className="text-[11px] text-muted-foreground">{effectiveDelivery(pt)}</span>
+                          <span className="text-[11px]">{effectiveDelivery(pt)}</span>
                         )}
                       </td>
                     )}
                     {visibleColumns.has("km") && (
-                      <td className="px-3 py-2.5 text-center text-[11px] tabular-nums text-muted-foreground font-medium">
+                      <td className="px-3 py-2 text-center text-[11px] tabular-nums text-muted-foreground">
                         {pointDistances.get(pointKey(pt)) ?? ""}
                       </td>
                     )}
                     {visibleColumns.has("action") && (
-                      <td className="px-2 py-2.5 text-center">
+                      <td className="px-2 py-2 text-center">
                         <button
                           type="button"
-                          className={cn(
-                            "inline-flex size-7 items-center justify-center rounded-lg transition-colors",
+                          className={`inline-flex size-6 items-center justify-center p-0 transition-colors ${
                             isDeliveryActive(pt.delivery)
-                              ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
-                              : 'text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20'
-                          )}
+                              ? 'text-emerald-600 hover:text-emerald-700'
+                              : 'text-red-500 hover:text-red-600'
+                          }`}
                           aria-label={`View info for ${pt.name}`}
                           title={`View info for ${pt.name}`}
                           onClick={() => setActiveActionPoint(pt)}
