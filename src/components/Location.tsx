@@ -1367,7 +1367,6 @@ export function DeliveryTableDialog() {
                 </tr>
               ) : (
                 displayed.map((pt, idx) => {
-                  const deliveryItem = DELIVERY_MAP.get(effectiveDelivery(pt))
                   return (
                   <tr
                     key={`${pt.routeId}-${pt.code}-${idx}`}
@@ -1407,18 +1406,8 @@ export function DeliveryTableDialog() {
                       </td>
                     )}
                     {visibleColumns.has("delivery") && (
-                      <td className="px-3 py-2 text-center">
-                        {deliveryItem ? (
-                          <span className={cn(
-                            "inline-flex items-center justify-center px-2 py-0.5 rounded-full text-[10px] font-bold border border-transparent",
-                            deliveryItem.color,
-                            deliveryItem.textColor,
-                          )}>
-                            {deliveryItem.label}
-                          </span>
-                        ) : (
-                          <span className="text-[11px]">{effectiveDelivery(pt)}</span>
-                        )}
+                      <td className="px-3 py-2 text-center text-[11px]">
+                        {effectiveDelivery(pt)}
                       </td>
                     )}
                     {visibleColumns.has("km") && (
